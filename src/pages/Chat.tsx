@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
@@ -23,6 +23,26 @@ const Chat = () => {
   const [subject, setSubject] = useState<string>("general");
   const [isLoading, setIsLoading] = useState(false);
 
+  const createNewConversation = useCallback(async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("chat_conversations")
+        .insert({
+          user_id: userId,
+          title: "New Conversation",
+          subject: subject,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      setConversationId(data.id);
+    } catch (error) {
+      toast.error("Failed to create conversation");
+      console.error(error);
+    }
+  }, [subject]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
@@ -43,27 +63,7 @@ const Chat = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
-
-  const createNewConversation = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("chat_conversations")
-        .insert({
-          user_id: userId,
-          title: "New Conversation",
-          subject: subject,
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      setConversationId(data.id);
-    } catch (error: any) {
-      toast.error("Failed to create conversation");
-      console.error(error);
-    }
-  };
+  }, [navigate, createNewConversation]);
 
   const handleSendMessage = async (content: string, inputType: "text" | "voice" | "image" = "text") => {
     if (!conversationId || !session) return;
@@ -114,7 +114,7 @@ const Chat = () => {
         role: "assistant",
         content: data.response,
       });
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to get response");
       console.error(error);
     } finally {
@@ -130,13 +130,17 @@ const Chat = () => {
   if (!session) return null;
 
   return (
-    <div className="flex flex-col h-screen max-w-5xl mx-auto">
+    <div className="flex flex-col h-screen bg-gradient-to-b from-background to-background/80 overflow-hidden">
       <ChatHeader
         subject={subject}
         onSubjectChange={setSubject}
         onSignOut={handleSignOut}
       />
-      <ChatMessages messages={messages} isLoading={isLoading} />
+      <div className="flex-1 flex justify-center min-h-0">
+        <div className="w-full max-w-5xl flex flex-col min-h-0">
+          <ChatMessages messages={messages} isLoading={isLoading} />
+        </div>
+      </div>
       <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
     </div>
   );
