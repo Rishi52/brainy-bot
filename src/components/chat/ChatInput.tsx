@@ -25,44 +25,45 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
 
   const handleVoiceInput = async () => {
     if (isRecording) {
-      // Stop recording
-      mediaRecorderRef.current?.stop();
-      setIsRecording(false);
+      // If already recording, we can't stop it manually with this implementation
+      toast.info("Please wait for speech recognition to complete or say something.");
       return;
     }
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mediaRecorder = new MediaRecorder(stream);
-      const audioChunks: Blob[] = [];
+      // Check for microphone permissions first
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      const { geminiService } = await import("@/lib/gemini");
+      
+      if (!geminiService.isInitialized()) {
+        toast.error("AI service not configured. Please add your API key in settings.");
+        return;
+      }
 
-      mediaRecorder.ondataavailable = (event) => {
-        audioChunks.push(event.data);
-      };
-
-      mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-        const reader = new FileReader();
-        
-        reader.onloadend = async () => {
-          const base64Audio = reader.result?.toString().split(",")[1];
-          if (!base64Audio) return;
-
-          // Note: Voice-to-text functionality will be implemented via edge function
-          toast.info("Voice transcription coming soon!");
-        };
-
-        reader.readAsDataURL(audioBlob);
-        stream.getTracks().forEach((track) => track.stop());
-      };
-
-      mediaRecorder.start();
-      mediaRecorderRef.current = mediaRecorder;
       setIsRecording(true);
-      toast.success("Recording started!");
+      toast.success("🎤 Listening... Speak clearly!");
+
+      try {
+        const transcript = await geminiService.startSpeechRecognition();
+        setIsRecording(false);
+        
+        if (transcript.trim()) {
+          toast.success("✅ Voice message transcribed!");
+          onSendMessage(transcript, "voice");
+        } else {
+          toast.error("No speech detected. Please try again.");
+        }
+      } catch (error) {
+        setIsRecording(false);
+        console.error("Speech recognition error:", error);
+        const errorMessage = error instanceof Error ? error.message : "Speech recognition failed";
+        toast.error(errorMessage);
+      }
     } catch (error) {
-      toast.error("Failed to access microphone");
-      console.error(error);
+      setIsRecording(false);
+      console.error("Microphone access error:", error);
+      toast.error("Microphone access denied. Please allow microphone permissions and try again.");
     }
   };
 
@@ -75,16 +76,58 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64Image = reader.result?.toString();
-      if (!base64Image) return;
+    // Check file size (max 10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error("Image too large. Please choose an image under 10MB.");
+      return;
+    }
 
-      // Note: Image processing will be implemented via edge function
-      toast.info("Image processing coming soon!");
-    };
+    try {
+      const { geminiService } = await import("@/lib/gemini");
+      
+      if (!geminiService.isVisionEnabled()) {
+        toast.error("Image analysis not available. Please check your API configuration.");
+        return;
+      }
 
-    reader.readAsDataURL(file);
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result?.toString();
+        if (!base64Image) return;
+
+        try {
+          toast.info("🔍 Analyzing image with AI...");
+          
+          // Send image with a descriptive prompt
+          const prompt = "What do you see in this image? Please provide a detailed description and if it contains any text, diagrams, or educational content, explain it in detail.";
+          const description = await geminiService.generateResponseFromImage(base64Image, prompt);
+          
+          // Send the image description as a message
+          onSendMessage(`[Image Analysis]\n\n${description}`, "image");
+          toast.success("✅ Image analyzed successfully!");
+          
+        } catch (error) {
+          console.error("Image analysis error:", error);
+          const errorMessage = error instanceof Error ? error.message : "Failed to analyze image";
+          
+          if (errorMessage.includes('API key')) {
+            toast.error("API key issue. Please check your Gemini API configuration.");
+          } else if (errorMessage.includes('quota')) {
+            toast.error("API quota exceeded. Please check your Gemini API limits.");
+          } else {
+            toast.error(`Image analysis failed: ${errorMessage}`);
+          }
+        }
+      };
+
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Image upload error:", error);
+      toast.error("Failed to process image");
+    }
+
+    // Reset the file input
+    e.target.value = "";
   };
 
   return (

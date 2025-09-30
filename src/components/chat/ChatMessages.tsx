@@ -160,7 +160,9 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
               {message.input_type && message.input_type !== "text" && (
                 <>
                   <span className="text-xs text-muted-foreground/50">•</span>
-                  <span className="text-xs text-muted-foreground/70 capitalize">
+                  <span className="text-xs text-muted-foreground/70 capitalize flex items-center gap-1">
+                    {message.input_type === "voice" && "🎤"}
+                    {message.input_type === "image" && "📸"}
                     via {message.input_type}
                   </span>
                 </>

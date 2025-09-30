@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ThemeToggle from "@/components/ui/theme-toggle";
+import SettingsDialog from "@/components/ui/settings-dialog";
 import { Brain, LogOut, Sparkles, BookOpen } from "lucide-react";
 
 interface ChatHeaderProps {
@@ -88,6 +89,8 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut }: ChatHeaderProps) =>
             </Select>
           </div>
 
+          <SettingsDialog />
+          
           <ThemeToggle />
 
           <Button 
