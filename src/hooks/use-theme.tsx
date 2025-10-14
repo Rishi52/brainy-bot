@@ -31,11 +31,8 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     }
     
     // Check system preference
-    if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      return "dark";
-    }
-    
-    return "light";
+    // We want dark by default regardless of system unless explicitly saved
+    return "dark";
   });
 
   const setThemeAndSave = (newTheme: Theme) => {
@@ -57,21 +54,8 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     root.classList.add(theme);
   }, [theme]);
 
-  // Listen for system theme changes
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Only update if no theme is explicitly saved
-      if (!localStorage.getItem("brainybot-theme")) {
-        setTheme(e.matches ? "dark" : "light");
-      }
-    };
-
-    mediaQuery.addEventListener("change", handleChange);
-    
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
+  // (Optional) If you'd like to still respect system changes when user hasn't chosen manually, keep the listener.
+  // Currently disabled to keep dark as the persistent default when unset.
 
   const contextValue: ThemeContextType = {
     theme,

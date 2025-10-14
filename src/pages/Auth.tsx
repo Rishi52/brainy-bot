@@ -65,11 +65,17 @@ const Auth = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-background/80">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-primary/5 to-accent/10 relative overflow-hidden">
+        {/* Animated background elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-accent/10 to-transparent rounded-full blur-3xl animate-pulse" style={{animationDelay: '1s'}}></div>
+        </div>
+      
       <div className="absolute top-4 right-4">
         <ThemeToggle />
       </div>
-      <div className="w-full max-w-md space-y-6">
+        <div className="w-full max-w-md space-y-6 relative z-10">
         <div className="text-center space-y-2">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="relative group">
@@ -86,10 +92,10 @@ const Auth = () => {
           <p className="text-muted-foreground">Your AI-powered study companion</p>
         </div>
 
-        <Card className="shadow-soft border-2">
+        <Card className="shadow-soft border border-border/50 bg-card/80 backdrop-blur-xl">
           <CardHeader>
-            <CardTitle>Get Started</CardTitle>
-            <CardDescription>Sign in or create an account to continue</CardDescription>
+          <CardTitle className="text-xl gradient-primary bg-clip-text text-transparent">Get Started</CardTitle>
+          <CardDescription className="text-muted-foreground/80">Sign in or create an account to continue your learning journey</CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="signin" className="w-full">
@@ -108,6 +114,7 @@ const Auth = () => {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                        className="bg-background/50 border-border/50 focus:border-primary/50 transition-smooth"
                       required
                     />
                   </div>
@@ -119,11 +126,17 @@ const Auth = () => {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                        className="bg-background/50 border-border/50 focus:border-primary/50 transition-smooth"
                       required
                     />
                   </div>
                   <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                    {isLoading ? "Signing in..." : "Sign In"}
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Signing in...
+                        </div>
+                      ) : "Sign In"}
                   </Button>
                 </form>
               </TabsContent>
@@ -138,6 +151,7 @@ const Auth = () => {
                       placeholder="Your name"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
+                        className="bg-background/50 border-border/50 focus:border-primary/50 transition-smooth"
                       required
                     />
                   </div>
@@ -149,6 +163,7 @@ const Auth = () => {
                       placeholder="you@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                        className="bg-background/50 border-border/50 focus:border-primary/50 transition-smooth"
                       required
                     />
                   </div>
@@ -160,12 +175,18 @@ const Auth = () => {
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                        className="bg-background/50 border-border/50 focus:border-primary/50 transition-smooth"
                       required
                       minLength={6}
                     />
                   </div>
                   <Button type="submit" className="w-full gradient-primary" disabled={isLoading}>
-                    {isLoading ? "Creating account..." : "Create Account"}
+                      {isLoading ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          Creating account...
+                        </div>
+                      ) : "Create Account"}
                   </Button>
                 </form>
               </TabsContent>

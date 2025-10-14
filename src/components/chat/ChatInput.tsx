@@ -131,8 +131,8 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   };
 
   return (
-    <div className="sticky bottom-0 border-t bg-card/95 backdrop-blur-xl shadow-soft transition-smooth">
-      <div className="p-4 max-w-4xl mx-auto">
+      <div className="sticky bottom-0 border-t border-border/50 bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
+        <div className="p-6 max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="flex gap-3 items-end">
           <input
             ref={fileInputRef}
@@ -180,8 +180,8 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask me anything... I'm here to help you learn! 💡"
-              className="min-h-[60px] max-h-[200px] resize-none pr-12 transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/50"
+                placeholder="Ask me anything... I'm here to help you learn! 💡"
+                className="min-h-[64px] max-h-[200px] resize-none pr-12 transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -201,10 +201,10 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             type="submit"
             size="icon"
             disabled={!input.trim() || disabled}
-            className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[60px] w-12"
+          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[64px] w-14 rounded-xl"
             title="Send message"
           >
-            <Send className="h-5 w-5" />
+          <Send className="h-5 w-5 ml-0.5" />
           </Button>
         </form>
 
