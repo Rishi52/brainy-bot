@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
-import { geminiService } from "@/lib/gemini";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
@@ -89,28 +88,18 @@ const Chat = () => {
         input_type: inputType,
       });
 
-      // Handle different input types
-      let aiResponse: string;
-      
-      if (inputType === "image") {
-        // For image inputs, the content already contains the analysis
-        aiResponse = "I've analyzed the image you shared. Feel free to ask me any questions about it!";
-      } else {
-        // Get chat history for context (excluding image analysis messages for cleaner context)
-        const chatHistory = messages
-          .filter(msg => msg.input_type !== "image")
-          .map(msg => ({
-            role: msg.role,
-            content: msg.content
-          }));
+      // Call AI edge function
+      const { data, error } = await supabase.functions.invoke("chat-ai", {
+        body: {
+          message: content,
+          subject: subject,
+          conversationId: conversationId,
+        },
+      });
 
-        // Call Gemini AI
-        if (chatHistory.length > 0) {
-          aiResponse = await geminiService.generateResponseWithHistory(content, chatHistory, subject);
-        } else {
-          aiResponse = await geminiService.generateResponse(content, subject);
-        }
-      }
+      if (error) throw error;
+
+      const aiResponse = data.response;
 
       const assistantMessage: Message = {
         id: crypto.randomUUID(),
