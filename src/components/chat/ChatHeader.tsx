@@ -24,14 +24,14 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut, onMenuToggle, isMobil
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
-      <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center justify-between p-2 sm:p-3 md:p-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
           {/* Mobile Menu Button - Always show on small screens */}
           <Button 
             variant="outline" 
             size="icon" 
             onClick={onMenuToggle || (() => {})}
-            className="md:hidden mobile-menu-button transition-smooth hover:bg-primary/10 bg-background/80 border-border/70 flex-shrink-0 shadow-sm"
+            className="md:hidden mobile-menu-button transition-smooth hover:bg-primary/10 bg-background/80 border-border/70 flex-shrink-0 shadow-sm h-9 w-9"
             title="Open chat history"
           >
             <Menu className="h-4 w-4 text-foreground" />
@@ -39,26 +39,26 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut, onMenuToggle, isMobil
           
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
-            <div className="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl shadow-glow animate-pulse-glow">
-              <Brain className="h-6 w-6 text-white" />
-              <Sparkles className="h-3 w-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
+            <div className="relative flex items-center justify-center w-9 h-9 sm:w-10 sm:h-10 md:w-12 md:h-12 bg-gradient-to-br from-primary to-accent rounded-xl shadow-glow animate-pulse-glow">
+              <Brain className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 text-white" />
+              <Sparkles className="h-2 w-2 sm:h-2.5 sm:w-2.5 md:h-3 md:w-3 text-yellow-300 absolute -top-0.5 -right-0.5 sm:-top-1 sm:-right-1 animate-pulse" />
             </div>
           </div>
-          <div className={`space-y-1 ${isMobile ? 'hidden sm:block' : ''}`}>
-            <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
+          <div className="hidden sm:block space-y-0.5 md:space-y-1">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold gradient-primary bg-clip-text text-transparent">
               BrainyBot
             </h1>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <BookOpen className="h-3 w-3" />
+            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1">
+              <BookOpen className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
               AI Study Companion
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
           <div className="hidden sm:block">
             <Select value={subject} onValueChange={onSubjectChange}>
-                <SelectTrigger className="w-[200px] transition-smooth hover:bg-accent/5 bg-background/50 border-border/50">
+                <SelectTrigger className="w-[140px] sm:w-[160px] md:w-[200px] text-xs sm:text-sm transition-smooth hover:bg-accent/5 bg-background/50 border-border/50">
                 <SelectValue placeholder="Select subject" />
               </SelectTrigger>
               <SelectContent className="bg-card/95 backdrop-blur-xl border-border">
@@ -110,9 +110,9 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut, onMenuToggle, isMobil
             variant="outline" 
             size="icon" 
             onClick={onSignOut}
-              className="transition-smooth hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 bg-background/50 border-border/50"
+              className="transition-smooth hover:bg-destructive/10 hover:text-destructive hover:border-destructive/20 bg-background/50 border-border/50 h-9 w-9 sm:h-10 sm:w-10"
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
           </Button>
         </div>
       </div>

@@ -41,7 +41,7 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
 
   return (
     <ScrollArea className="h-full w-full bg-gradient-to-b from-background/50 to-background">
-      <div className="p-4 space-y-6 min-h-full">
+      <div className="p-2 sm:p-4 space-y-4 sm:space-y-6 min-h-full pb-4">
         {messages.length === 0 && (
         <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
           <div className="relative group">
@@ -59,18 +59,18 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
               Your AI study companion is ready to help! Ask questions, upload images, 
               or use voice input - I'll provide detailed explanations to enhance your learning.
             </p>
-            <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground/80 mt-6">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-card/50 border border-border/50">
-                <span>💬</span> Text conversations
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 text-xs sm:text-sm text-muted-foreground/80 mt-4 sm:mt-6">
+              <div className="flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-card/50 border border-border/50">
+                <span>💬</span> <span className="hidden xs:inline">Text conversations</span><span className="xs:hidden">Text</span>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-card/50 border border-border/50">
-                <span>🎤</span> Voice input
+              <div className="flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-card/50 border border-border/50">
+                <span>🎤</span> <span className="hidden xs:inline">Voice input</span><span className="xs:hidden">Voice</span>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-card/50 border border-border/50">
-                <span>📸</span> Image analysis
+              <div className="flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-card/50 border border-border/50">
+                <span>📸</span> <span className="hidden xs:inline">Image analysis</span><span className="xs:hidden">Image</span>
               </div>
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-card/50 border border-border/50">
-                <span>📚</span> Subject expertise
+              <div className="flex items-center gap-2 p-2 sm:p-3 rounded-lg bg-card/50 border border-border/50">
+                <span>📚</span> <span className="hidden xs:inline">Subject expertise</span><span className="xs:hidden">Subjects</span>
               </div>
             </div>
           </div>
@@ -90,9 +90,9 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
             </div>
           )}
 
-          <div className="flex flex-col max-w-[85%] md:max-w-[75%]">
+          <div className="flex flex-col max-w-[90%] sm:max-w-[85%] md:max-w-[75%]">
             <div
-              className={`relative rounded-2xl p-4 shadow-soft transition-smooth ${
+              className={`relative rounded-2xl p-3 sm:p-4 shadow-soft transition-smooth ${
                 message.role === "assistant"
                   ? "bg-card/80 border border-border/50 backdrop-blur-sm"
                   : "gradient-primary text-primary-foreground shadow-glow"

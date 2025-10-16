@@ -215,7 +215,7 @@ const ChatSidebar = ({
   }
 
   return (
-    <div className={`${isMobile ? 'w-full h-screen max-h-screen' : 'w-80 h-screen'} bg-card/50 backdrop-blur-xl ${!isMobile ? 'border-r border-border/50' : ''} flex flex-col overflow-hidden`}>
+    <div className={`${isMobile ? 'w-full h-dvh' : 'w-80 h-dvh'} bg-card/50 backdrop-blur-xl ${!isMobile ? 'border-r border-border/50' : ''} flex flex-col overflow-hidden`}>
       {/* Header */}
       <div className="flex-shrink-0 p-4 border-b border-border/50">
         <div className="flex items-center justify-between mb-4">

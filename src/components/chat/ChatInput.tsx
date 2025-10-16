@@ -132,7 +132,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
 
   return (
       <div className="w-full bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
-        <div className="p-3 md:p-6 max-w-4xl mx-auto">
+        <div className="p-2 sm:p-3 md:p-4 max-w-4xl mx-auto">
         <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 items-end">
           <input
             ref={fileInputRef}
@@ -180,8 +180,8 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-                placeholder="Ask me anything... I'm here to help you learn! 💡"
-                className="min-h-[48px] md:min-h-[64px] max-h-[150px] md:max-h-[200px] resize-none pr-12 text-sm md:text-base transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
+                placeholder="Ask me anything... 💡"
+                className="min-h-[44px] sm:min-h-[48px] md:min-h-[56px] max-h-[120px] sm:max-h-[150px] md:max-h-[200px] resize-none pr-12 text-sm md:text-base transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -201,10 +201,10 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             type="submit"
             size="icon"
             disabled={!input.trim() || disabled}
-          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[48px] w-12 md:h-[64px] md:w-14 rounded-xl"
+          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[44px] w-11 sm:h-[48px] sm:w-12 md:h-[56px] md:w-14 rounded-xl"
             title="Send message"
           >
-          <Send className="h-4 w-4 md:h-5 md:w-5 ml-0.5" />
+          <Send className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-0.5" />
           </Button>
         </form>
 

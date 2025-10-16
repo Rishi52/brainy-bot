@@ -225,13 +225,16 @@ const Chat = () => {
   if (!session) return null;
 
   return (
-    <div className="flex h-screen max-h-screen bg-gradient-to-br from-background via-background/95 to-background/90 overflow-hidden viewport-constrained">
+    <div className="flex h-dvh w-full bg-gradient-to-br from-background via-background/95 to-background/90 overflow-hidden">
       {/* Mobile Overlay */}
       {mobileMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
-          onTouchStart={() => setMobileMenuOpen(false)}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            setMobileMenuOpen(false);
+          }}
         />
       )}
       
@@ -239,12 +242,12 @@ const Chat = () => {
       <div className={`${
         isMobile 
           ? mobileMenuOpen 
-            ? 'fixed inset-y-0 left-0 z-50 w-full max-w-xs' 
+            ? 'fixed inset-y-0 left-0 z-50 w-full max-w-[85vw] sm:max-w-xs' 
             : 'hidden'
           : sidebarCollapsed 
             ? 'w-16' 
             : 'w-80'
-      } transition-all duration-300 ease-in-out md:relative bg-card/95 backdrop-blur-xl`}>
+      } transition-all duration-300 ease-in-out md:relative bg-card/95 backdrop-blur-xl shadow-2xl md:shadow-none`}>
         <ChatSidebar
           userId={session.user.id}
           currentConversationId={conversationId}
@@ -263,7 +266,7 @@ const Chat = () => {
       </div>
       
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0 max-h-screen overflow-hidden">
+      <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
         <ChatHeader
           subject={subject}
           onSubjectChange={setSubject}
@@ -273,12 +276,12 @@ const Chat = () => {
         />
         <div className="flex-1 flex justify-center min-h-0 overflow-hidden">
           <div className="w-full max-w-4xl flex flex-col min-h-0 overflow-hidden">
-            <div className="flex-1 min-h-0 p-2 md:p-4 overflow-hidden">
+            <div className="flex-1 min-h-0 px-2 md:px-4 overflow-hidden">
               <ChatMessages messages={messages} isLoading={isLoading} />
             </div>
           </div>
         </div>
-        <div className="flex-shrink-0 p-2 md:p-4 border-t border-border/20">
+        <div className="flex-shrink-0 border-t border-border/20">
           <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
         </div>
       </div>
