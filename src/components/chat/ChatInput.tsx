@@ -131,9 +131,9 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   };
 
   return (
-      <div className="w-full bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
+      <div className="w-full bg-transparent transition-smooth">
         <div className="p-2 sm:p-3 md:p-4 max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 items-end">
+        <form onSubmit={handleSubmit} className="flex gap-2 items-end bg-card/40 backdrop-blur-md border border-border/30 rounded-2xl p-2 sm:p-2.5 shadow-lg hover:bg-card/50 hover:border-border/40 transition-all duration-300">
           <input
             ref={fileInputRef}
             type="file"
@@ -142,14 +142,14 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             onChange={handleImageUpload}
           />
 
-          <div className="flex gap-1 md:gap-2">
+          <div className="flex gap-1.5">
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="flex-shrink-0 transition-smooth hover:bg-accent/10 hover:border-accent/30 hover:text-accent h-10 w-10 md:h-11 md:w-11"
+              className="flex-shrink-0 transition-smooth hover:bg-accent/10 hover:text-accent h-9 w-9 sm:h-10 sm:w-10 border-0"
               title="Upload image"
             >
               <ImageIcon className="h-4 w-4" />
@@ -157,14 +157,14 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
 
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={handleVoiceInput}
               disabled={disabled}
-              className={`flex-shrink-0 transition-smooth h-10 w-10 md:h-11 md:w-11 ${
+              className={`flex-shrink-0 transition-smooth h-9 w-9 sm:h-10 sm:w-10 border-0 ${
                 isRecording 
-                  ? "bg-destructive text-destructive-foreground border-destructive shadow-glow" 
-                  : "hover:bg-primary/10 hover:border-primary/30 hover:text-primary"
+                  ? "bg-destructive/20 text-destructive" 
+                  : "hover:bg-primary/10 hover:text-primary"
               }`}
               title={isRecording ? "Stop recording" : "Start voice input"}
             >
@@ -181,7 +181,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask me anything... 💡"
-                className="min-h-[44px] sm:min-h-[48px] md:min-h-[56px] max-h-[120px] sm:max-h-[150px] md:max-h-[200px] resize-none pr-12 text-sm md:text-base transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
+                className="min-h-[38px] sm:min-h-[42px] md:min-h-[44px] max-h-[100px] sm:max-h-[120px] md:max-h-[150px] resize-none pr-12 text-xs sm:text-sm transition-smooth focus:ring-1 focus:ring-primary/20 border-0 bg-transparent placeholder:text-muted-foreground/50 rounded-lg focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:ring-offset-0"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -190,7 +190,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
               }}
               disabled={disabled}
             />
-            <div className="absolute bottom-2 right-2 flex items-center gap-1 text-xs text-muted-foreground/70">
+            <div className="absolute bottom-1.5 right-2 flex items-center gap-0.5 text-[10px] sm:text-xs text-muted-foreground/40">
               <span>{input.length}</span>
               <span>/</span>
               <span>2000</span>
@@ -201,23 +201,23 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             type="submit"
             size="icon"
             disabled={!input.trim() || disabled}
-          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[44px] w-11 sm:h-[48px] sm:w-12 md:h-[56px] md:w-14 rounded-xl"
+          className="flex-shrink-0 gradient-primary shadow-md hover:shadow-lg transition-smooth h-[38px] w-[38px] sm:h-[42px] sm:w-[42px] rounded-xl"
             title="Send message"
           >
-          <Send className="h-4 w-4 sm:h-4 sm:w-4 md:h-5 md:w-5 ml-0.5" />
+          <Send className="h-4 w-4 ml-0.5" />
           </Button>
         </form>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 md:mt-3 text-xs text-muted-foreground/70 gap-2">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 text-[10px] sm:text-xs text-muted-foreground/50 gap-1.5">
           <p className="hidden sm:block">Press Enter to send, Shift+Enter for new line</p>
-          <div className="flex items-center justify-center sm:justify-end gap-3">
-            <span className="flex items-center gap-1">
+          <div className="flex items-center justify-center sm:justify-end gap-2 sm:gap-3">
+            <span className="flex items-center gap-0.5 sm:gap-1">
               <span>💬</span> <span className="hidden xs:inline">Text</span>
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-0.5 sm:gap-1">
               <span>🎤</span> <span className="hidden xs:inline">Voice</span>
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-0.5 sm:gap-1">
               <span>📸</span> <span className="hidden xs:inline">Image</span>
             </span>
           </div>

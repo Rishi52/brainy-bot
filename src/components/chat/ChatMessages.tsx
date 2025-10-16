@@ -55,7 +55,7 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
             <h2 className="text-3xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               Welcome to BrainyBot!
             </h2>
-            <p className="text-muted-foreground text-lg leading-relaxed">
+            <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed px-4">
               Your AI study companion is ready to help! Ask questions, upload images, 
               or use voice input - I'll provide detailed explanations to enhance your learning.
             </p>
@@ -129,7 +129,7 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
                   </ReactMarkdown>
                 </div>
               ) : (
-                <p className="text-sm leading-relaxed">{message.content}</p>
+                <p className="text-xs sm:text-sm leading-relaxed">{message.content}</p>
               )}
               
               {message.role === "assistant" && (
