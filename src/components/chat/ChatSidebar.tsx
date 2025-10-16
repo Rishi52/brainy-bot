@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +33,7 @@ interface ChatSidebarProps {
   onNewConversation: () => void;
   isCollapsed: boolean;
   onToggleCollapse: () => void;
+  isMobile?: boolean;
 }
 
 const ChatSidebar = ({
@@ -42,6 +43,7 @@ const ChatSidebar = ({
   onNewConversation,
   isCollapsed,
   onToggleCollapse,
+  isMobile,
 }: ChatSidebarProps) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,7 +59,7 @@ const ChatSidebar = ({
     language: "🌍"
   } as const;
 
-  const loadConversations = async () => {
+  const loadConversations = useCallback(async () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
@@ -79,8 +81,8 @@ const ChatSidebar = ({
 
       if (error) throw error;
 
-      const conversationsWithPreview = data.map((conv: any) => {
-        const firstUserMsg = conv.chat_messages?.find((msg: any) => msg.role === "user");
+      const conversationsWithPreview = data.map((conv: { id: string; title: string; subject: string; created_at: string; updated_at: string; chat_messages?: { role: string; content: string }[] }) => {
+        const firstUserMsg = conv.chat_messages?.find((msg: { role: string; content: string }) => msg.role === "user");
         let preview: string;
         if (firstUserMsg?.content) {
           const snippet = firstUserMsg.content.substring(0, 60);
@@ -98,7 +100,7 @@ const ChatSidebar = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   const deleteConversation = async (id: string) => {
     try {
@@ -156,7 +158,7 @@ const ChatSidebar = ({
     if (userId) {
       loadConversations();
     }
-  }, [userId]);
+  }, [userId, loadConversations]);
 
   // Group conversations by date
   const groupedConversations = filteredConversations.reduce((groups, conv) => {
@@ -168,7 +170,8 @@ const ChatSidebar = ({
     return groups;
   }, {} as Record<string, Conversation[]>);
 
-  if (isCollapsed) {
+  // Don't show collapsed view on mobile - always show full sidebar when visible
+  if (isCollapsed && !isMobile) {
     return (
       <div className="w-16 bg-card/50 backdrop-blur-xl border-r border-border/50 flex flex-col items-center py-4 gap-4">
         <Button
@@ -212,21 +215,23 @@ const ChatSidebar = ({
   }
 
   return (
-    <div className="w-80 bg-card/50 backdrop-blur-xl border-r border-border/50 flex flex-col">
+    <div className={`${isMobile ? 'w-full h-screen max-h-screen' : 'w-80 h-screen'} bg-card/50 backdrop-blur-xl ${!isMobile ? 'border-r border-border/50' : ''} flex flex-col overflow-hidden`}>
       {/* Header */}
-      <div className="p-4 border-b border-border/50">
+      <div className="flex-shrink-0 p-4 border-b border-border/50">
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-lg gradient-primary bg-clip-text text-transparent">
             Chat History
           </h2>
-          <Button
-            onClick={onToggleCollapse}
-            variant="ghost"
-            size="icon"
-            className="hover:bg-primary/10"
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
+          {!isMobile && (
+            <Button
+              onClick={onToggleCollapse}
+              variant="ghost"
+              size="icon"
+              className="hover:bg-primary/10"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+          )}
         </div>
         
         <div className="flex gap-2">
@@ -253,8 +258,8 @@ const ChatSidebar = ({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1">
-        <div className="p-2">
+      <ScrollArea className="flex-1 min-h-0">
+        <div className="p-2 pb-4">
           {loading ? (
             <div className="space-y-2">
               {[...Array(5)].map((_, i) => (

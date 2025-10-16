@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Session } from "@supabase/supabase-js";
+import { useIsMobile } from "@/hooks/use-mobile";
 import ChatHeader from "@/components/chat/ChatHeader";
 import ChatMessages from "@/components/chat/ChatMessages";
 import ChatInput from "@/components/chat/ChatInput";
@@ -18,12 +19,14 @@ export interface Message {
 
 const Chat = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [session, setSession] = useState<Session | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [subject, setSubject] = useState<string>("general");
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const createNewConversation = useCallback(async (userId: string) => {
     try {
@@ -222,30 +225,62 @@ const Chat = () => {
   if (!session) return null;
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-background via-background/95 to-background/90 overflow-hidden">
-      {/* Sidebar */}
-      <ChatSidebar
-        userId={session.user.id}
-        currentConversationId={conversationId}
-        onConversationSelect={loadConversation}
-        onNewConversation={() => createNewConversation(session.user.id)}
-        isCollapsed={sidebarCollapsed}
-        onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
-      />
+    <div className="flex h-screen max-h-screen bg-gradient-to-br from-background via-background/95 to-background/90 overflow-hidden viewport-constrained">
+      {/* Mobile Overlay */}
+      {mobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm"
+          onClick={() => setMobileMenuOpen(false)}
+          onTouchStart={() => setMobileMenuOpen(false)}
+        />
+      )}
+      
+      {/* Sidebar - Hidden on mobile unless menu is open */}
+      <div className={`${
+        isMobile 
+          ? mobileMenuOpen 
+            ? 'fixed inset-y-0 left-0 z-50 w-full max-w-xs' 
+            : 'hidden'
+          : sidebarCollapsed 
+            ? 'w-16' 
+            : 'w-80'
+      } transition-all duration-300 ease-in-out md:relative bg-card/95 backdrop-blur-xl`}>
+        <ChatSidebar
+          userId={session.user.id}
+          currentConversationId={conversationId}
+          onConversationSelect={(id) => {
+            loadConversation(id);
+            if (isMobile) setMobileMenuOpen(false);
+          }}
+          onNewConversation={() => {
+            createNewConversation(session.user.id);
+            if (isMobile) setMobileMenuOpen(false);
+          }}
+          isCollapsed={isMobile ? false : sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
+          isMobile={isMobile}
+        />
+      </div>
       
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col min-h-0">
+      <div className="flex-1 flex flex-col min-h-0 max-h-screen overflow-hidden">
         <ChatHeader
           subject={subject}
           onSubjectChange={setSubject}
           onSignOut={handleSignOut}
+          onMenuToggle={() => setMobileMenuOpen(!mobileMenuOpen)}
+          isMobile={isMobile}
         />
-        <div className="flex-1 flex justify-center min-h-0 p-4">
-          <div className="w-full max-w-4xl flex flex-col min-h-0">
-            <ChatMessages messages={messages} isLoading={isLoading} />
+        <div className="flex-1 flex justify-center min-h-0 overflow-hidden">
+          <div className="w-full max-w-4xl flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 min-h-0 p-2 md:p-4 overflow-hidden">
+              <ChatMessages messages={messages} isLoading={isLoading} />
+            </div>
           </div>
         </div>
-        <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        <div className="flex-shrink-0 p-2 md:p-4 border-t border-border/20">
+          <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
+        </div>
       </div>
     </div>
   );

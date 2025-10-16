@@ -453,4 +453,81 @@ All colors MUST be HSL.
     outline: 2px solid hsl(var(--primary));
     outline-offset: 2px;
   }
+
+  /* Mobile-specific utilities */
+  @media (max-width: 768px) {
+    .mobile-full-height {
+      height: 100vh;
+      height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    }
+    
+    .mobile-safe-area {
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    
+    .mobile-touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Improved touch scrolling */
+    .mobile-scroll {
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    
+    /* Prevent zoom on double-tap */
+    .mobile-no-zoom {
+      touch-action: manipulation;
+    }
+
+    /* Ensure mobile menu button is always visible */
+    .mobile-menu-button {
+      display: flex !important;
+      position: relative;
+      z-index: 60;
+    }
+
+    /* Mobile sidebar animations */
+    .mobile-sidebar-enter {
+      transform: translateX(-100%);
+    }
+    
+    .mobile-sidebar-enter-active {
+      transform: translateX(0);
+      transition: transform 300ms ease-in-out;
+    }
+  }
+
+  /* Fix viewport height issues */
+  html, body {
+    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #root {
+    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* Prevent content from overflowing screen bounds */
+  .viewport-constrained {
+    max-height: 100vh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* Responsive breakpoint utilities */
+  @screen xs {
+    .xs\:hidden {
+      display: none;
+    }
+    
+    .xs\:inline {
+      display: inline;
+    }
+  }
 }

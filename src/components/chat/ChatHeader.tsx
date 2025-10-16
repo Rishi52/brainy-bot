@@ -8,9 +8,11 @@ interface ChatHeaderProps {
   subject: string;
   onSubjectChange: (subject: string) => void;
   onSignOut: () => void;
+  onMenuToggle?: () => void;
+  isMobile?: boolean;
 }
 
-const ChatHeader = ({ subject, onSubjectChange, onSignOut }: ChatHeaderProps) => {
+const ChatHeader = ({ subject, onSubjectChange, onSignOut, onMenuToggle, isMobile }: ChatHeaderProps) => {
   const subjectIcons = {
     general: "🎯",
     math: "🔢", 
@@ -23,7 +25,18 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut }: ChatHeaderProps) =>
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
       <div className="flex items-center justify-between p-4">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 md:gap-4">
+          {/* Mobile Menu Button - Always show on small screens */}
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={onMenuToggle || (() => {})}
+            className="md:hidden mobile-menu-button transition-smooth hover:bg-primary/10 bg-background/80 border-border/70 flex-shrink-0 shadow-sm"
+            title="Open chat history"
+          >
+            <Menu className="h-4 w-4 text-foreground" />
+          </Button>
+          
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl blur-lg group-hover:blur-xl transition-all duration-300"></div>
             <div className="relative flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-xl shadow-glow animate-pulse-glow">
@@ -31,7 +44,7 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut }: ChatHeaderProps) =>
               <Sparkles className="h-3 w-3 text-yellow-300 absolute -top-1 -right-1 animate-pulse" />
             </div>
           </div>
-          <div className="space-y-1">
+          <div className={`space-y-1 ${isMobile ? 'hidden sm:block' : ''}`}>
             <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
               BrainyBot
             </h1>

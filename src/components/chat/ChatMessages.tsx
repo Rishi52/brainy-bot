@@ -40,10 +40,10 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
   };
 
   return (
-    <ScrollArea className="flex-1 bg-gradient-to-b from-background/50 to-background">
-      <div className="p-4 space-y-6">
+    <ScrollArea className="h-full w-full bg-gradient-to-b from-background/50 to-background">
+      <div className="p-4 space-y-6 min-h-full">
         {messages.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full text-center space-y-6 animate-fade-in">
+        <div className="flex flex-col items-center justify-center min-h-[60vh] text-center space-y-6 animate-fade-in">
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-accent/30 rounded-full blur-2xl group-hover:blur-3xl transition-all duration-500"></div>
             <div className="relative flex items-center justify-center w-24 h-24 bg-gradient-to-br from-primary via-purple-500 to-accent rounded-full shadow-glow">

@@ -131,9 +131,9 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   };
 
   return (
-      <div className="sticky bottom-0 border-t border-border/50 bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
-        <div className="p-6 max-w-4xl mx-auto">
-        <form onSubmit={handleSubmit} className="flex gap-3 items-end">
+      <div className="w-full bg-card/80 backdrop-blur-xl shadow-soft transition-smooth">
+        <div className="p-3 md:p-6 max-w-4xl mx-auto">
+        <form onSubmit={handleSubmit} className="flex gap-2 md:gap-3 items-end">
           <input
             ref={fileInputRef}
             type="file"
@@ -142,14 +142,14 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             onChange={handleImageUpload}
           />
 
-          <div className="flex gap-2">
+          <div className="flex gap-1 md:gap-2">
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              className="flex-shrink-0 transition-smooth hover:bg-accent/10 hover:border-accent/30 hover:text-accent"
+              className="flex-shrink-0 transition-smooth hover:bg-accent/10 hover:border-accent/30 hover:text-accent h-10 w-10 md:h-11 md:w-11"
               title="Upload image"
             >
               <ImageIcon className="h-4 w-4" />
@@ -161,7 +161,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
               size="icon"
               onClick={handleVoiceInput}
               disabled={disabled}
-              className={`flex-shrink-0 transition-smooth ${
+              className={`flex-shrink-0 transition-smooth h-10 w-10 md:h-11 md:w-11 ${
                 isRecording 
                   ? "bg-destructive text-destructive-foreground border-destructive shadow-glow" 
                   : "hover:bg-primary/10 hover:border-primary/30 hover:text-primary"
@@ -181,7 +181,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask me anything... I'm here to help you learn! 💡"
-                className="min-h-[64px] max-h-[200px] resize-none pr-12 transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
+                className="min-h-[48px] md:min-h-[64px] max-h-[150px] md:max-h-[200px] resize-none pr-12 text-sm md:text-base transition-smooth focus:ring-2 focus:ring-primary/20 border-border/50 bg-background/60 backdrop-blur-sm rounded-xl"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
@@ -201,24 +201,24 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
             type="submit"
             size="icon"
             disabled={!input.trim() || disabled}
-          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[64px] w-14 rounded-xl"
+          className="flex-shrink-0 gradient-primary shadow-glow hover:shadow-glow/80 transition-smooth h-[48px] w-12 md:h-[64px] md:w-14 rounded-xl"
             title="Send message"
           >
-          <Send className="h-5 w-5 ml-0.5" />
+          <Send className="h-4 w-4 md:h-5 md:w-5 ml-0.5" />
           </Button>
         </form>
 
-        <div className="flex items-center justify-between mt-3 text-xs text-muted-foreground/70">
-          <p>Press Enter to send, Shift+Enter for new line</p>
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between mt-2 md:mt-3 text-xs text-muted-foreground/70 gap-2">
+          <p className="hidden sm:block">Press Enter to send, Shift+Enter for new line</p>
+          <div className="flex items-center justify-center sm:justify-end gap-3">
             <span className="flex items-center gap-1">
-              <span>💬</span> Text
+              <span>💬</span> <span className="hidden xs:inline">Text</span>
             </span>
             <span className="flex items-center gap-1">
-              <span>🎤</span> Voice
+              <span>🎤</span> <span className="hidden xs:inline">Voice</span>
             </span>
             <span className="flex items-center gap-1">
-              <span>📸</span> Image
+              <span>📸</span> <span className="hidden xs:inline">Image</span>
             </span>
           </div>
         </div>
