@@ -11,10 +11,10 @@ serve(async (req) => {
   }
 
   try {
-    const { message, subject, conversationId } = await req.json();
+    const { message, subject, conversationId, imageData } = await req.json();
 
-    if (!message) {
-      throw new Error("Message is required");
+    if (!message && !imageData) {
+      throw new Error("Message or image is required");
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -34,6 +34,26 @@ serve(async (req) => {
 
     const systemPrompt = subjectPrompts[subject] || subjectPrompts.general;
 
+    // Prepare user content (text or image)
+    let userContent;
+    if (imageData) {
+      // Handle image input
+      userContent = [
+        {
+          type: "image_url",
+          image_url: {
+            url: imageData,
+          },
+        },
+        {
+          type: "text",
+          text: message || "What do you see in this image? Please provide a detailed description and if it contains any text, diagrams, or educational content, explain it in detail.",
+        },
+      ];
+    } else {
+      userContent = message;
+    }
+
     // Call Lovable AI Gateway with Gemini
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -50,7 +70,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: message,
+            content: userContent,
           },
         ],
       }),

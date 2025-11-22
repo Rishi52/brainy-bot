@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Message } from "@/pages/Chat";
-import { Bot, User, Loader2, Brain, Sparkles, Copy, Check } from "lucide-react";
+import { Bot, User, Loader2, Brain, Sparkles, Copy, Check, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import ReactMarkdown from "react-markdown";
@@ -8,7 +8,6 @@ import remarkMath from "remark-math";
 import remarkGfm from "remark-gfm";
 import rehypeKatex from "rehype-katex";
 import "katex/dist/katex.min.css";
-import { useState } from "react";
 import { toast } from "sonner";
 
 interface ChatMessagesProps {
@@ -19,6 +18,7 @@ interface ChatMessagesProps {
 const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -28,15 +28,38 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
     scrollToBottom();
   }, [messages, isLoading]);
 
-  const copyToClipboard = async (content: string, messageId: string) => {
+  const handleCopy = async (text: string, id: string) => {
     try {
-      await navigator.clipboard.writeText(content);
-      setCopiedId(messageId);
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
       toast.success("Copied to clipboard!");
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
       toast.error("Failed to copy");
     }
+  };
+
+  const handleSpeak = (text: string, id: string) => {
+    if (speakingId === id) {
+      window.speechSynthesis.cancel();
+      setSpeakingId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    utterance.onend = () => setSpeakingId(null);
+    utterance.onerror = () => {
+      setSpeakingId(null);
+      toast.error("Failed to play audio");
+    };
+
+    setSpeakingId(id);
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -131,23 +154,35 @@ const ChatMessages = ({ messages, isLoading }: ChatMessagesProps) => {
               ) : (
                 <p className="text-xs sm:text-sm leading-relaxed">{message.content}</p>
               )}
-              
-              {message.role === "assistant" && (
+            </div>
+            
+            {message.role === "assistant" && (
+              <div className="flex gap-1.5 mt-2 pt-2 border-t border-border/30">
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => copyToClipboard(message.content, message.id)}
-                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-8 w-8 p-0"
+                  onClick={() => handleSpeak(message.content, message.id)}
+                  className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/10"
+                >
+                  <Volume2 className={`h-3.5 w-3.5 ${speakingId === message.id ? 'text-primary' : ''}`} />
+                  <span className="hidden sm:inline">{speakingId === message.id ? 'Stop' : 'Listen'}</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleCopy(message.content, message.id)}
+                  className="h-7 px-2 text-xs gap-1.5 hover:bg-accent/10"
                 >
                   {copiedId === message.id ? (
-                    <Check className="h-3 w-3 text-green-500" />
+                    <Check className="h-3.5 w-3.5 text-primary" />
                   ) : (
-                    <Copy className="h-3 w-3" />
+                    <Copy className="h-3.5 w-3.5" />
                   )}
+                  <span className="hidden sm:inline">{copiedId === message.id ? 'Copied' : 'Copy'}</span>
                 </Button>
-              )}
-            </div>
-            
+              </div>
+            )}
+
             <div className={`flex items-center gap-2 mt-1 px-2 ${
               message.role === "assistant" ? "justify-start" : "justify-end"
             }`}>
