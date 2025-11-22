@@ -5,21 +5,29 @@ import { Mic, Image as ImageIcon, Send, StopCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface ChatInputProps {
-  onSendMessage: (content: string, inputType?: "text" | "voice" | "image") => void;
+  onSendMessage: (content: string, inputType?: "text" | "voice" | "image", imageData?: string) => void;
   disabled?: boolean;
 }
 
 const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   const [input, setInput] = useState("");
   const [isRecording, setIsRecording] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [pendingImage, setPendingImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim() || disabled) return;
+    if ((!input.trim() && !pendingImage) || disabled) return;
 
-    onSendMessage(input.trim(), "text");
+    if (pendingImage) {
+      onSendMessage(input.trim() || "Analyze this image", "image", pendingImage);
+      setPendingImage(null);
+      setImagePreview(null);
+    } else {
+      onSendMessage(input.trim(), "text");
+    }
     setInput("");
   };
 
@@ -54,8 +62,8 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
         setIsRecording(false);
         
         if (transcript.trim()) {
-          toast.success("✅ Voice message transcribed!");
-          onSendMessage(transcript, "voice");
+          toast.success("✅ Voice transcribed! Review and send.");
+          setInput(transcript);
         } else {
           toast.error("No speech detected. Please try again.");
         }
@@ -99,10 +107,9 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
       const base64Image = reader.result?.toString();
       if (!base64Image) return;
 
-      toast.info("🔍 Analyzing image with AI...");
-      
-      // Send image data directly - will be passed to edge function
-      onSendMessage(base64Image, "image");
+      toast.success("📸 Image ready! Add a message and press send.");
+      setPendingImage(base64Image);
+      setImagePreview(base64Image);
     };
 
     reader.readAsDataURL(file);
@@ -112,6 +119,22 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
   return (
       <div className="w-full bg-transparent transition-smooth">
         <div className="p-2 sm:p-3 md:p-4 max-w-4xl mx-auto">
+        {imagePreview && (
+          <div className="mb-2 relative inline-block">
+            <img src={imagePreview} alt="Preview" className="max-h-20 rounded-lg border border-border/50" />
+            <button
+              type="button"
+              onClick={() => {
+                setImagePreview(null);
+                setPendingImage(null);
+                toast.info("Image removed");
+              }}
+              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-destructive/90"
+            >
+              ✕
+            </button>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="flex gap-2 items-end bg-card/40 backdrop-blur-md border border-border/30 rounded-2xl p-2 sm:p-2.5 shadow-lg hover:bg-card/50 hover:border-border/40 transition-all duration-300">
           <input
             ref={fileInputRef}
@@ -179,7 +202,7 @@ const ChatInput = ({ onSendMessage, disabled }: ChatInputProps) => {
           <Button
             type="submit"
             size="icon"
-            disabled={!input.trim() || disabled}
+            disabled={(!input.trim() && !pendingImage) || disabled}
           className="flex-shrink-0 gradient-primary shadow-md hover:shadow-lg transition-smooth h-[38px] w-[38px] sm:h-[42px] sm:w-[42px] rounded-xl"
             title="Send message"
           >
