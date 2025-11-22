@@ -144,10 +144,14 @@ const Chat = () => {
     if (!conversationId || !session) return;
 
     setIsLoading(true);
+    
+    // For image input, show placeholder
+    const displayContent = inputType === "image" ? "[Image uploaded for analysis]" : content;
+    
     const userMessage: Message = {
       id: crypto.randomUUID(),
       role: "user",
-      content,
+      content: displayContent,
       input_type: inputType,
       created_at: new Date().toISOString(),
     };
@@ -159,17 +163,25 @@ const Chat = () => {
       await supabase.from("chat_messages").insert({
         conversation_id: conversationId,
         role: "user",
-        content,
+        content: displayContent,
         input_type: inputType,
       });
 
+      // Prepare payload for edge function
+      const payload: any = {
+        message: inputType === "image" ? "Analyze this image" : content,
+        subject: subject,
+        conversationId: conversationId,
+      };
+
+      // Include image data if present
+      if (inputType === "image") {
+        payload.imageData = content;
+      }
+
       // Call AI edge function
       const { data, error } = await supabase.functions.invoke("chat-ai", {
-        body: {
-          message: content,
-          subject: subject,
-          conversationId: conversationId,
-        },
+        body: payload,
       });
 
       if (error) throw error;
@@ -192,9 +204,9 @@ const Chat = () => {
         content: aiResponse,
       });
 
-      // Update conversation title if it's still "New Conversation"
+      // Update conversation title if it's the first message
       if (messages.length === 0) {
-        const newTitle = content.substring(0, 50) + (content.length > 50 ? "..." : "");
+        const newTitle = displayContent.substring(0, 50) + (displayContent.length > 50 ? "..." : "");
         await supabase
           .from("chat_conversations")
           .update({ 
@@ -203,11 +215,14 @@ const Chat = () => {
           })
           .eq("id", conversationId);
       } else {
-        // Update the updated_at timestamp
         await supabase
           .from("chat_conversations")
           .update({ updated_at: new Date().toISOString() })
           .eq("id", conversationId);
+      }
+      
+      if (inputType === "image") {
+        toast.success("✅ Image analyzed successfully!");
       }
     } catch (error) {
       toast.error("Failed to get response");
