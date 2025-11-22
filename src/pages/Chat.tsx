@@ -140,7 +140,7 @@ const Chat = () => {
     return () => subscription.unsubscribe();
   }, [navigate, createNewConversation, loadConversation]);
 
-  const handleSendMessage = async (content: string, inputType: "text" | "voice" | "image" = "text") => {
+  const handleSendMessage = async (content: string, inputType: "text" | "voice" | "image" = "text", imageData?: string) => {
     if (!conversationId || !session) return;
 
     setIsLoading(true);
@@ -169,14 +169,14 @@ const Chat = () => {
 
       // Prepare payload for edge function
       const payload: any = {
-        message: inputType === "image" ? "Analyze this image" : content,
+        message: content,
         subject: subject,
         conversationId: conversationId,
       };
 
       // Include image data if present
-      if (inputType === "image") {
-        payload.imageData = content;
+      if (inputType === "image" && imageData) {
+        payload.imageData = imageData;
       }
 
       // Call AI edge function

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.24.1";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,9 +18,9 @@ serve(async (req) => {
       throw new Error("Message or image is required");
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      throw new Error("GEMINI_API_KEY is not configured");
     }
 
     // Create subject-specific system prompts
@@ -34,75 +35,51 @@ serve(async (req) => {
 
     const systemPrompt = subjectPrompts[subject] || subjectPrompts.general;
 
-    // Prepare user content (text or image)
-    let userContent;
-    if (imageData) {
-      // Handle image input
-      userContent = [
-        {
-          type: "image_url",
-          image_url: {
-            url: imageData,
-          },
-        },
-        {
-          type: "text",
-          text: message || "What do you see in this image? Please provide a detailed description and if it contains any text, diagrams, or educational content, explain it in detail.",
-        },
-      ];
-    } else {
-      userContent = message;
-    }
-
-    // Call Lovable AI Gateway with Gemini
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
+    // Initialize Gemini
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash",
+      generationConfig: {
+        maxOutputTokens: 1000,
+        temperature: 0.7,
       },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt,
-          },
-          {
-            role: "user",
-            content: userContent,
-          },
-        ],
-      }),
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits depleted. Please add credits to continue." }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          }
-        );
+    let aiResponse: string;
+
+    if (imageData) {
+      // Handle image analysis
+      let base64Data = imageData;
+      let mimeType = "image/jpeg";
+
+      if (imageData.startsWith("data:")) {
+        const mimeMatch = imageData.match(/data:([^;]+)/);
+        if (mimeMatch) {
+          mimeType = mimeMatch[1];
+        }
+        base64Data = imageData.split(",")[1];
       }
 
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      throw new Error("Failed to get AI response");
+      const userPrompt = message || "What do you see in this image? Please provide a detailed description and if it contains any text, diagrams, or educational content, explain it in detail.";
+
+      const result = await model.generateContent([
+        `${systemPrompt}\n\n${userPrompt}`,
+        {
+          inlineData: {
+            data: base64Data,
+            mimeType: mimeType,
+          },
+        },
+      ]);
+
+      const response = await result.response;
+      aiResponse = response.text();
+    } else {
+      // Handle text-only
+      const result = await model.generateContent(`${systemPrompt}\n\n${message}`);
+      const response = await result.response;
+      aiResponse = response.text();
     }
-
-    const data = await response.json();
-    const aiResponse = data.choices?.[0]?.message?.content;
 
     if (!aiResponse) {
       throw new Error("No response from AI");
