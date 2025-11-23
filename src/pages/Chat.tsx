@@ -167,11 +167,18 @@ const Chat = () => {
         input_type: inputType,
       });
 
+      // Prepare conversation history
+      const conversationHistory = messages.map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
       // Prepare payload for edge function
       const payload: any = {
         message: content,
         subject: subject,
         conversationId: conversationId,
+        conversationHistory: conversationHistory,
       };
 
       // Include image data if present
@@ -179,29 +186,74 @@ const Chat = () => {
         payload.imageData = imageData;
       }
 
-      // Call AI edge function
-      const { data, error } = await supabase.functions.invoke("chat-ai", {
-        body: payload,
-      });
-
-      if (error) throw error;
-
-      const aiResponse = data.response;
-
+      // Create a placeholder for the assistant's streaming response
+      const assistantMessageId = crypto.randomUUID();
       const assistantMessage: Message = {
-        id: crypto.randomUUID(),
+        id: assistantMessageId,
         role: "assistant",
-        content: aiResponse,
+        content: "",
         created_at: new Date().toISOString(),
       };
-
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Save assistant message to database
+      // Call AI edge function with streaming
+      const response = await fetch(
+        `https://hkicxvmugfqimqnabmmx.supabase.co/functions/v1/chat-ai`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to get response");
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let fullResponse = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value);
+          const lines = chunk.split("\n");
+
+          for (const line of lines) {
+            if (line.startsWith("data: ")) {
+              const data = line.slice(6);
+              if (data === "[DONE]") break;
+
+              try {
+                const parsed = JSON.parse(data);
+                if (parsed.text) {
+                  fullResponse += parsed.text;
+                  // Update the assistant message with accumulated response
+                  setMessages((prev) =>
+                    prev.map((msg) =>
+                      msg.id === assistantMessageId
+                        ? { ...msg, content: fullResponse }
+                        : msg
+                    )
+                  );
+                }
+              } catch (e) {
+                // Ignore parsing errors for incomplete JSON
+              }
+            }
+          }
+        }
+      }
+
+      // Save final assistant message to database
       await supabase.from("chat_messages").insert({
         conversation_id: conversationId,
         role: "assistant",
-        content: aiResponse,
+        content: fullResponse,
       });
 
       // Update conversation title if it's the first message
