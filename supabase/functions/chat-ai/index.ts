@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { GoogleGenerativeAI } from "https://esm.sh/@google/generative-ai@0.24.1";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -23,14 +24,42 @@ serve(async (req) => {
       throw new Error("GEMINI_API_KEY is not configured");
     }
 
+    // Fetch user profile
+    const supabaseClient = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      {
+        global: {
+          headers: { Authorization: req.headers.get("Authorization")! },
+        },
+      }
+    );
+
+    const {
+      data: { user },
+    } = await supabaseClient.auth.getUser();
+
+    let userContext = "";
+    if (user) {
+      const { data: profile } = await supabaseClient
+        .from("user_profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profile) {
+        userContext = `\n\nUser Context: The student is ${profile.age} years old and in ${profile.education_level} grade/level. Adjust your explanations and vocabulary to be appropriate for this education level.`;
+      }
+    }
+
     // Create subject-specific system prompts
     const subjectPrompts: Record<string, string> = {
-      math: "You are an expert mathematics tutor. Provide step-by-step solutions with clear explanations. Use LaTeX notation for mathematical expressions (e.g., $x^2$ for inline math, $$equation$$ for block math). Break down complex problems into manageable steps.",
-      science: "You are an expert science tutor. Explain concepts clearly with real-world examples. Break down complex topics into understandable parts. Use analogies when helpful.",
-      coding: "You are an expert programming tutor. Provide clear code examples with explanations. Explain concepts step-by-step and suggest best practices. Format code properly.",
-      history: "You are an expert history tutor. Provide context, dates, and connections between events. Explain causes and effects clearly.",
-      language: "You are an expert language tutor. Explain grammar, vocabulary, and usage clearly. Provide examples and practice suggestions.",
-      general: "You are BrainyBot, an AI study companion. Provide clear, step-by-step explanations tailored to students. Break down complex topics into understandable parts. Be encouraging and supportive.",
+      math: `You are an expert mathematics tutor. Provide step-by-step solutions with clear explanations. Use LaTeX notation for mathematical expressions (e.g., $x^2$ for inline math, $$equation$$ for block math). Break down complex problems into manageable steps.${userContext}`,
+      science: `You are an expert science tutor. Explain concepts clearly with real-world examples. Break down complex topics into understandable parts. Use analogies when helpful.${userContext}`,
+      coding: `You are an expert programming tutor. Provide clear code examples with explanations. Explain concepts step-by-step and suggest best practices. Format code properly.${userContext}`,
+      history: `You are an expert history tutor. Provide context, dates, and connections between events. Explain causes and effects clearly.${userContext}`,
+      language: `You are an expert language tutor. Explain grammar, vocabulary, and usage clearly. Provide examples and practice suggestions.${userContext}`,
+      general: `You are BrainyBot, an AI study companion. Provide clear, step-by-step explanations tailored to students. Break down complex topics into understandable parts. Be encouraging and supportive.${userContext}`,
     };
 
     const systemPrompt = subjectPrompts[subject] || subjectPrompts.general;
@@ -40,7 +69,6 @@ serve(async (req) => {
     const model = genAI.getGenerativeModel({
       model: "gemini-2.5-flash",
       generationConfig: {
-        maxOutputTokens: 1000,
         temperature: 0.7,
       },
     });

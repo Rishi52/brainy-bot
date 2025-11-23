@@ -102,7 +102,6 @@ const ChatHeader = ({ subject, onSubjectChange, onSignOut, onMenuToggle, isMobil
             </Select>
           </div>
 
-          <SettingsDialog />
           
           <ThemeToggle />
 
