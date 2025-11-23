@@ -38,7 +38,7 @@ serve(async (req) => {
     // Initialize Gemini
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-1.5-pro",
       generationConfig: {
         maxOutputTokens: 1000,
         temperature: 0.7,
