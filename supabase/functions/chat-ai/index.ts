@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { message, subject, conversationId, imageData } = await req.json();
+    const { message, subject, conversationId, imageData, conversationHistory } = await req.json();
 
     if (!message && !imageData) {
       throw new Error("Message or image is required");
@@ -45,10 +45,11 @@ serve(async (req) => {
       },
     });
 
-    let aiResponse: string;
-
+    // Build conversation history for Gemini
+    const chatHistory = conversationHistory || [];
+    
+    // Add current message with or without image
     if (imageData) {
-      // Handle image analysis
       let base64Data = imageData;
       let mimeType = "image/jpeg";
 
@@ -60,40 +61,96 @@ serve(async (req) => {
         base64Data = imageData.split(",")[1];
       }
 
-      const userPrompt = message || "What do you see in this image? Please provide a detailed description and if it contains any text, diagrams, or educational content, explain it in detail.";
-
-      const result = await model.generateContent([
-        `${systemPrompt}\n\n${userPrompt}`,
+      const userPrompt = message || "What do you see in this image? Please provide a detailed description.";
+      
+      // For images, use generateContent with history
+      const contents = [
+        { role: "user", parts: [{ text: systemPrompt }] },
+        ...chatHistory.map((msg: any) => ({
+          role: msg.role === "assistant" ? "model" : "user",
+          parts: [{ text: msg.content }]
+        })),
         {
-          inlineData: {
-            data: base64Data,
-            mimeType: mimeType,
-          },
-        },
-      ]);
+          role: "user",
+          parts: [
+            { text: userPrompt },
+            { inlineData: { data: base64Data, mimeType } }
+          ]
+        }
+      ];
 
-      const response = await result.response;
-      aiResponse = response.text();
+      const result = await model.generateContentStream(contents);
+
+      // Create readable stream
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of result.stream) {
+              const text = chunk.text();
+              if (text) {
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`));
+              }
+            }
+            controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive"
+        }
+      });
     } else {
-      // Handle text-only
-      const result = await model.generateContent(`${systemPrompt}\n\n${message}`);
-      const response = await result.response;
-      aiResponse = response.text();
-    }
+      // For text-only, use chat with history
+      const history = chatHistory.map((msg: any) => ({
+        role: msg.role === "assistant" ? "model" : "user",
+        parts: [{ text: msg.content }]
+      }));
 
-    if (!aiResponse) {
-      throw new Error("No response from AI");
-    }
+      const chat = model.startChat({
+        history: [
+          { role: "user", parts: [{ text: systemPrompt }] },
+          { role: "model", parts: [{ text: "I understand. I'll help you with your questions." }] },
+          ...history
+        ]
+      });
 
-    return new Response(
-      JSON.stringify({
-        response: aiResponse,
-        conversationId,
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+      const result = await chat.sendMessageStream(message);
+
+      // Create readable stream
+      const stream = new ReadableStream({
+        async start(controller) {
+          try {
+            for await (const chunk of result.stream) {
+              const text = chunk.text();
+              if (text) {
+                controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify({ text })}\n\n`));
+              }
+            }
+            controller.enqueue(new TextEncoder().encode(`data: [DONE]\n\n`));
+            controller.close();
+          } catch (error) {
+            controller.error(error);
+          }
+        }
+      });
+
+      return new Response(stream, {
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "text/event-stream",
+          "Cache-Control": "no-cache",
+          "Connection": "keep-alive"
+        }
+      });
+    }
   } catch (error) {
     console.error("Error in chat-ai function:", error);
     return new Response(
