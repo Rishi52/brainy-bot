@@ -92,22 +92,22 @@ serve(async (req) => {
       const userPrompt = message || "What do you see in this image? Please provide a detailed description.";
       
       // For images, use generateContent with history
-      const contents = [
-        { role: "user", parts: [{ text: systemPrompt }] },
-        ...chatHistory.map((msg: any) => ({
-          role: msg.role === "assistant" ? "model" : "user",
-          parts: [{ text: msg.content }]
-        })),
-        {
-          role: "user",
-          parts: [
-            { text: userPrompt },
-            { inlineData: { data: base64Data, mimeType } }
-          ]
-        }
-      ];
-
-      const result = await model.generateContentStream(contents);
+      const result = await model.generateContentStream({
+        contents: [
+          { role: "user", parts: [{ text: systemPrompt }] },
+          ...chatHistory.map((msg: any) => ({
+            role: msg.role === "assistant" ? "model" : "user",
+            parts: [{ text: msg.content }]
+          })),
+          {
+            role: "user",
+            parts: [
+              { text: userPrompt },
+              { inlineData: { data: base64Data, mimeType } }
+            ]
+          }
+        ]
+      });
 
       // Create readable stream
       const stream = new ReadableStream({
